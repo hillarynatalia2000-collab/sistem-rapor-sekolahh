@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wali Kelas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" th:href="@{/css/person.css}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800" th:attr="data-success=${success},data-error=${error},data-allowed-menu=${allowedMenu}">
+  <div th:replace="~{navigasi :: nav}"></div>
+  <div class="max-w-7xl mx-auto p-6 pt-24">
+    
+    <div class="flex items-center gap-3 mb-6">
+      <i class="fa-solid fa-chalkboard-user text-[var(--brand)] text-2xl"></i>
+      <h1 class="text-2xl font-semibold">Data Wali Kelas</h1>
+      <th:block th:if="${allowedMenu == 'admin'}">
+        <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold inline-flex items-center gap-1">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>Mode Admin</span>
+        </span>
+      </th:block>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
+      <div th:replace="~{sidebar :: sidebar(false, ${allowedMenu})}"></div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <section class="bg-white rounded-xl shadow-sm p-6 lg:col-span-1 border-t-4 border-[var(--brand)] sticky top-24 self-start">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold" th:text="${wkInfo.id} == null ? 'Tambah Wali Kelas' : 'Edit Wali Kelas'"></h2>
+          <span class="text-sm text-gray-500">Isi semua field</span>
+        </div>
+        <form th:action="${wkInfo.id} == null ? @{/walikelas/submit/} : @{/walikelas/submit/{id}(id=${wkInfo.id})}" method="post" th:object="${wkInfo}" class="space-y-4 js-wk-form">
+          <div class="grid grid-cols-1 gap-4">
+            <!-- Nama -->
+            <div>
+              <label class="block text-sm text-gray-600 mb-1 font-medium">Nama <span class="text-red-500">*</span></label>
+              <div class="relative">
+                <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input th:field="*{nama}" type="text" placeholder="Masukkan nama lengkap" required 
+                       class="w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]">
+              </div>
+            </div>
+
+            <!-- Tanggal Lahir -->
+            <div>
+              <label class="block text-sm text-gray-600 mb-1 font-medium">Tanggal Lahir <span class="text-red-500">*</span></label>
+              <div class="relative">
+                <i class="fa-solid fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input th:field="*{tanggalLahir}" type="date" required 
+                       th:class="'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'">
+              </div>
+            </div>
+
+            <!-- Nomor Telepon -->
+            <div>
+              <label class="block text-sm text-gray-600 mb-1 font-medium">Nomor Telepon <span class="text-red-500">*</span></label>
+              <div class="relative">
+                <i class="fa-solid fa-phone absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input th:field="*{nomorTelepon}" type="tel" inputmode="numeric" pattern="^0[0-9]{9,13}$" placeholder="081234567890" required 
+                       th:class="'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'">
+              </div>
+              <p class="mt-1 text-xs text-gray-500">Format: 0xxxxxxxxxx (10-14 digit)</p>
+            </div>
+
+            <!-- Alamat -->
+            <div>
+              <label class="block text-sm text-gray-600 mb-1 font-medium">Alamat <span class="text-red-500">*</span></label>
+              <div class="relative">
+                <i class="fa-solid fa-location-dot absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input th:field="*{alamat}" type="text" placeholder="Masukkan alamat lengkap" required 
+                       th:class="'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'">
+              </div>
+            </div>
+
+            <!-- Informasi Akun (hanya untuk tambah baru) -->
+            <th:block th:if="${wkInfo.id} == null">
+              <div class="border-t border-gray-200 pt-4">
+                <h3 class="text-sm font-semibold mb-3 text-gray-700">Informasi Akun</h3>
+                
+                <!-- Username -->
+                <div class="mb-4">
+                  <label class="block text-sm text-gray-600 mb-1 font-medium">Username <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-user-circle absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{username}" type="text" placeholder="Masukkan username" required minlength="3" 
+                           class="w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]">
+                  </div>
+                  <p class="mt-1 text-xs text-gray-500">Minimal 3 karakter</p>
+                </div>
+
+                <!-- Password -->
+                <div class="mb-4">
+                  <label class="block text-sm text-gray-600 mb-1 font-medium">Password <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{password}" type="password" placeholder="Masukkan password" required 
+                           class="w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]">
+                  </div>
+                </div>
+
+                <!-- Email -->
+                <div class="mb-4">
+                  <label class="block text-sm text-gray-600 mb-1 font-medium">Email <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{email}" type="email" placeholder="Masukkan email" required 
+                           class="w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]">
+                  </div>
+                </div>
+
+                <!-- Role (hidden, default walikelas) -->
+                <input type="hidden" th:field="*{role}" value="walikelas">
+              </div>
+            </th:block>
+            <div>
+              <label class="block text-sm text-gray-600 mb-1 font-medium">Nama Kelas Walian <span class="text-red-500">*</span></label>
+              <div class="grid grid-cols-[1fr_auto] items-center gap-2 w-full">
+                <select th:field="*{namaKelasWalian}" required class="w-full min-w-0 rounded-xl border border-gray-300 bg-white text-gray-900 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)] js-wk-kelas-select">
+                  <option value="" disabled th:selected="${wkInfo.id} == null">Pilih Kelas</option>
+                  <option th:each="wk : ${wkList}" th:value="${wk.namaKelasWalian}" th:text="${wk.namaKelasWalian}">Kelas</option>
+                  <option th:if="${wkInfo.id} != null" th:value="${wkInfo.namaKelasWalian}" th:text="${wkInfo.namaKelasWalian}">Kelas</option>
+                </select>
+                <button type="button" class="inline-flex items-center justify-center shrink-0 w-10 h-10 rounded-xl border border-gray-300 hover:bg-gray-100 js-add-kelas" title="Tambah kelas">
+                  <i class="fa-solid fa-plus"></i>
+                </button>
+              </div>
+            </div>
+            <!-- NIP -->
+            <div th:if="${wkInfo.id != null}">
+              <label class="block text-sm text-gray-600 mb-1">
+                NIP
+                <span th:if="${wkInfo.statusKonfirmasi == null or wkInfo.statusKonfirmasi == false}" class="text-gray-400 text-xs">(Input setelah dikonfirmasi)</span>
+              </label>
+              <div class="relative">
+                <i class="fa-solid fa-id-card absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input th:field="*{nip}" type="text" placeholder="Contoh: 198001012010011001" 
+                       th:disabled="${wkInfo.statusKonfirmasi == null or wkInfo.statusKonfirmasi == false}"
+                       th:class="${(wkInfo.statusKonfirmasi == null or wkInfo.statusKonfirmasi == false)} ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'">
+              </div>
+              <p class="mt-1 text-xs text-gray-500">
+                <span th:if="${wkInfo.statusKonfirmasi == null or wkInfo.statusKonfirmasi == false}">Input NIP setelah wali kelas dikonfirmasi</span>
+                <span th:if="${wkInfo.statusKonfirmasi == true}">Format: 18 digit angka</span>
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <button th:if="${wkInfo.id} == null" type="submit" name="add" class="inline-flex items-center gap-2 bg-[var(--brand)] text-white px-4 py-2 rounded-lg hover:opacity-90" title="Tambah">
+              <i class="fa-solid fa-plus"></i>
+              <span>Tambah</span>
+            </button>
+            <button th:if="${wkInfo.id} != null" type="submit" name="edit" class="inline-flex items-center gap-2 bg-[var(--brand)] text-white px-4 py-2 rounded-lg hover:opacity-90" title="Simpan">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Simpan</span>
+            </button>
+            <a th:if="${wkInfo.id} != null" th:href="@{/walikelas}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100" title="Batal">
+              <i class="fa-solid fa-xmark"></i>
+              <span>Batal</span>
+            </a>
+          </div>
+        </form>
+      </section>
+
+      <section class="bg-white rounded-xl shadow-sm p-6 lg:col-span-2 border-t-4 border-[var(--brand)]">
+        <div class="flex items-center gap-2 mb-4">
+          <i class="fa-solid fa-list text-gray-700"></i>
+          <h2 class="text-lg font-semibold">Daftar Wali Kelas</h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 js-data-table table-center" data-page-size="15">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600">No</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600">NIP</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600">Nama</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600">Tanggal Lahir</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600">Nomor Telepon</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600">Kelas Walian</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600">Jumlah Siswa</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600">Status Konfirmasi</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600">Aksi</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr th:if="${wkList == null or wkList.isEmpty()}" class="hover:bg-gray-50">
+                <td colspan="9" class="px-4 py-8 text-center text-gray-500">
+                  <div class="flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-inbox text-4xl text-gray-300"></i>
+                    <p class="text-sm">Tidak ada data wali kelas</p>
+                  </div>
+                </td>
+              </tr>
+              <tr th:each="w : ${wkList}" class="hover:bg-gray-50">
+                <td class="px-4 py-2"><span class="js-row-no"></span></td>
+                <td class="px-4 py-2" th:text="${w.nip != null and !w.nip.isEmpty() ? w.nip : '-'}">-</td>
+                <td class="px-4 py-2" th:text="${w.nama}">Nama</td>
+                <td class="px-4 py-2" th:text="${w.tanggalLahir != null ? #dates.format(w.tanggalLahir,'yyyy-MM-dd') : ''}">2000-01-01</td>
+                <td class="px-4 py-2" th:text="${w.nomorTelepon}">08123456789</td>
+                <td class="px-4 py-2" th:text="${w.namaKelasWalian}">XI IPA</td>
+                <td class="px-4 py-2" th:text="${w.jumlahSiswaWalian}">32</td>
+                <td class="px-4 py-2">
+                  <span th:if="${w.statusKonfirmasi == true}" class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold inline-flex items-center gap-1">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Terkonfirmasi</span>
+                  </span>
+                  <span th:if="${w.statusKonfirmasi == null or w.statusKonfirmasi == false}" class="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold inline-flex items-center gap-1">
+                    <i class="fa-solid fa-clock"></i>
+                    <span>Menunggu</span>
+                  </span>
+                </td>
+                <td class="px-4 py-2">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <!-- Tombol Accept/Reject untuk Admin (hanya untuk yang belum dikonfirmasi) -->
+                    <th:block th:if="${w.statusKonfirmasi == false}">
+                      <form th:action="@{'/walikelas/konfirmasi/' + ${w.id} + '/accept'}" method="post" class="inline">
+                        <button type="submit" class="px-2 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-xs inline-flex items-center gap-1" title="Terima">
+                          <i class="fa-solid fa-check"></i>
+                          <span>Terima</span>
+                        </button>
+                      </form>
+                      <form th:action="@{'/walikelas/konfirmasi/' + ${w.id} + '/reject'}" method="post" class="inline">
+                        <button type="submit" class="px-2 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-xs inline-flex items-center gap-1" title="Tolak">
+                          <i class="fa-solid fa-xmark"></i>
+                          <span>Tolak</span>
+                        </button>
+                      </form>
+                    </th:block>
+                    <!-- Tombol Edit dan Hapus untuk Admin -->
+                    <a th:href="@{'/walikelas/' + ${w.id}}" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-100" title="Edit">
+                      <i class="fa-solid fa-pen"></i>
+                    </a>
+                    <form th:action="@{'/walikelas/submit/' + ${w.id}}" method="post" class="inline">
+                      <button type="submit" name="delete" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500 text-white hover:opacity-90" title="Hapus">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      </div>
+    </div>
+  </div>
+  <div th:replace="alert :: alerts"></div>
+</body>
+</html>

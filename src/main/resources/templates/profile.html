@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" th:href="@{/css/person.css}">
+  <script>
+    tailwind.config = { theme: { extend: {} } };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-50 text-gray-800" th:attr="data-success=${success},data-error=${error}">
+  <div th:replace="~{navigasi :: nav}"></div>
+  <div class="max-w-7xl mx-auto p-6 pt-24">
+    <div class="flex items-center gap-3 mb-6">
+      <i class="fa-solid fa-user text-[var(--brand)] text-2xl"></i>
+      <h1 class="text-2xl font-semibold">Profile</h1>
+      <th:block th:if="${allowedMenu == 'admin'}">
+        <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold inline-flex items-center gap-1">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>Mode Admin</span>
+        </span>
+      </th:block>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
+      <div th:replace="~{sidebar :: sidebar(false, ${allowedMenu})}"></div>
+      
+      <div class="bg-white rounded-xl shadow-sm p-6 border-t-4 border-[var(--brand)]">
+        <form th:action="@{/profile/update}" method="post" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Nama -->
+            <div>
+              <label class="block text-sm text-gray-600 mb-1 font-medium">Nama <span class="text-red-500">*</span></label>
+              <input type="text" name="nama" th:value="${person.nama}" required
+                     class="w-full rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]">
+            </div>
+
+            <!-- Username -->
+            <div>
+              <label class="block text-sm text-gray-600 mb-1 font-medium">Username <span class="text-red-500">*</span></label>
+              <input type="text" name="username" th:value="${person.username}" required
+                     class="w-full rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]">
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label class="block text-sm text-gray-600 mb-1 font-medium">Email <span class="text-red-500">*</span></label>
+              <input type="email" name="email" th:value="${person.email}" required
+                     class="w-full rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]">
+            </div>
+
+            <!-- Nomor Telepon -->
+            <div>
+              <label class="block text-sm text-gray-600 mb-1 font-medium">Nomor Telepon <span class="text-red-500">*</span></label>
+              <input type="text" name="nomorTelepon" th:value="${person.nomorTelepon}" required
+                     placeholder="081234567890"
+                     class="w-full rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]">
+            </div>
+
+            <!-- Tanggal Lahir -->
+            <div>
+              <label class="block text-sm text-gray-600 mb-1 font-medium">Tanggal Lahir</label>
+              <input type="date" name="tanggalLahir" 
+                     th:value="${person.tanggalLahir != null ? #dates.format(person.tanggalLahir, 'yyyy-MM-dd') : ''}"
+                     class="w-full rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]">
+            </div>
+
+            <!-- Role (Readonly) -->
+            <div>
+              <label class="block text-sm text-gray-600 mb-1 font-medium">Role</label>
+              <input type="text" th:value="${person.role}" readonly
+                     class="w-full rounded-xl border border-gray-300 bg-gray-100 text-gray-600 px-4 py-3 cursor-not-allowed">
+            </div>
+
+            <!-- Alamat -->
+            <div class="md:col-span-2">
+              <label class="block text-sm text-gray-600 mb-1 font-medium">Alamat <span class="text-red-500">*</span></label>
+              <textarea name="alamat" rows="3" required
+                        class="w-full rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]">[[${person.alamat != null ? person.alamat : ''}]]</textarea>
+            </div>
+
+            <!-- Password -->
+            <div>
+              <label class="block text-sm text-gray-600 mb-1 font-medium">Password Baru</label>
+              <input type="password" name="password" placeholder="Kosongkan jika tidak ingin mengubah"
+                     class="w-full rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]">
+              <p class="text-xs text-gray-500 mt-1">Minimal 6 karakter</p>
+            </div>
+
+            <!-- Konfirmasi Password -->
+            <div>
+              <label class="block text-sm text-gray-600 mb-1 font-medium">Konfirmasi Password</label>
+              <input type="password" name="passwordConfirm" placeholder="Kosongkan jika tidak ingin mengubah"
+                     class="w-full rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]">
+            </div>
+          </div>
+
+          <!-- Informasi Tambahan untuk Siswa -->
+          <th:block th:if="${siswa != null}">
+            <div class="border-t border-gray-200 pt-6 mt-6">
+              <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-graduation-cap text-[var(--brand)]"></i>
+                <span>Informasi Siswa</span>
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1 font-medium">NIS</label>
+                  <input type="text" th:value="${siswa.nis}" readonly
+                         class="w-full rounded-xl border border-gray-300 bg-gray-100 text-gray-600 px-4 py-3 cursor-not-allowed">
+                </div>
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1 font-medium">Kelas</label>
+                  <input type="text" th:value="${siswa.kelas}" readonly
+                         class="w-full rounded-xl border border-gray-300 bg-gray-100 text-gray-600 px-4 py-3 cursor-not-allowed">
+                </div>
+              </div>
+            </div>
+          </th:block>
+
+          <!-- Informasi Tambahan untuk Wali Kelas -->
+          <th:block th:if="${waliKelas != null}">
+            <div class="border-t border-gray-200 pt-6 mt-6">
+              <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-chalkboard-user text-[var(--brand)]"></i>
+                <span>Informasi Wali Kelas</span>
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1 font-medium">NIP</label>
+                  <input type="text" th:value="${waliKelas.nip != null ? waliKelas.nip : '-'}" readonly
+                         class="w-full rounded-xl border border-gray-300 bg-gray-100 text-gray-600 px-4 py-3 cursor-not-allowed">
+                </div>
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1 font-medium">Nama Kelas Walian</label>
+                  <input type="text" th:value="${waliKelas.namaKelasWalian != null ? waliKelas.namaKelasWalian : '-'}" readonly
+                         class="w-full rounded-xl border border-gray-300 bg-gray-100 text-gray-600 px-4 py-3 cursor-not-allowed">
+                </div>
+              </div>
+            </div>
+          </th:block>
+
+          <!-- Informasi Tambahan untuk Admin -->
+          <th:block th:if="${allowedMenu == 'admin' && admin != null}">
+            <div class="border-t border-gray-200 pt-6 mt-6">
+              <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-shield-halved text-[var(--brand)]"></i>
+                <span>Informasi Admin</span>
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1 font-medium">ID Admin</label>
+                  <input type="text" th:value="${admin.idAdmin != null ? admin.idAdmin : '-'}" readonly
+                         class="w-full rounded-xl border border-gray-300 bg-gray-100 text-gray-600 px-4 py-3 cursor-not-allowed">
+                </div>
+              </div>
+            </div>
+          </th:block>
+
+          <!-- Tombol Submit -->
+          <div class="flex items-center gap-3 pt-6 border-t border-gray-200">
+            <button type="submit" class="inline-flex items-center gap-2 bg-[var(--brand)] text-white px-6 py-3 rounded-lg hover:opacity-90">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Simpan Perubahan</span>
+            </button>
+            <a th:href="@{/dashboard}" th:if="${allowedMenu == 'admin'}" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-gray-300 hover:bg-gray-100">
+              <i class="fa-solid fa-arrow-left"></i>
+              <span>Kembali</span>
+            </a>
+            <a th:href="@{/siswa}" th:if="${allowedMenu == 'siswa'}" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-gray-300 hover:bg-gray-100">
+              <i class="fa-solid fa-arrow-left"></i>
+              <span>Kembali</span>
+            </a>
+            <a th:href="@{/dashboard}" th:if="${allowedMenu == 'all'}" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-gray-300 hover:bg-gray-100">
+              <i class="fa-solid fa-arrow-left"></i>
+              <span>Kembali</span>
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div th:replace="alert :: alerts"></div>
+</body>
+</html>
+

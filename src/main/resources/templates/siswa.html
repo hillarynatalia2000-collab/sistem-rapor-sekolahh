@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Siswa</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" th:href="@{/css/person.css}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800" th:attr="data-success=${success},data-error=${error},data-allowed-menu=${allowedMenu}">
+  <div th:replace="~{navigasi :: nav}"></div>
+  <div class="max-w-7xl mx-auto p-6 pt-24">
+    <!-- Alert Messages -->
+    <div th:if="${error}" class="mb-4 bg-red-500/20 border border-red-500 text-red-800 p-4 rounded-xl">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span th:text="${error}"></span>
+      </div>
+    </div>
+    <div th:if="${success}" class="mb-4 bg-green-500/20 border border-green-500 text-green-800 p-4 rounded-xl">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-circle-check"></i>
+        <span th:text="${success}"></span>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-3 mb-6">
+      <i class="fa-solid fa-graduation-cap text-[var(--brand)] text-2xl"></i>
+      <h1 class="text-2xl font-semibold">Data Siswa</h1>
+      <th:block th:if="${allowedMenu == 'admin'}">
+        <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold inline-flex items-center gap-1">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>Mode Admin</span>
+        </span>
+      </th:block>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
+      <div th:replace="~{sidebar :: sidebar(false, ${allowedMenu})}"></div>
+      <div class="grid grid-cols-1 gap-6">
+        <section class="bg-white rounded-xl shadow-sm p-6 border-t-4 border-[var(--brand)]" th:if="${allowedMenu != 'all'}">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-semibold" th:text="${siswaInfo.id != null ? 'Edit Siswa' : 'Tambah Siswa'}"></h2>
+          </div>
+          <th:block th:if="${siswaInfo.id != null}">
+            <form th:action="@{/siswa/submit/{id}(id=${siswaInfo.id})}" method="post" class="space-y-6 js-siswa-form" th:object="${siswaInfo}">
+            <!-- Section 1: Informasi Personal -->
+            <div class="border-b border-gray-200 pb-6">
+              <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-user text-[var(--brand)]"></i>
+                <span>Informasi Personal</span>
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Nama Lengkap -->
+                <div class="md:col-span-2">
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Nama Lengkap <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{nama}" type="text" placeholder="Masukkan nama lengkap" required 
+                           th:disabled="${allowedMenu == 'siswa'}"
+                           th:class="${allowedMenu == 'siswa'} ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'">
+                  </div>
+                </div>
+
+                <!-- Tanggal Lahir -->
+                <div>
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Tanggal Lahir <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{tanggalLahir}" type="date" required 
+                           th:disabled="${allowedMenu == 'siswa'}"
+                           th:class="${allowedMenu == 'siswa'} ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'">
+                  </div>
+                </div>
+
+                <!-- Nomor Telepon -->
+                <div>
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Nomor Telepon <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-phone absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{nomorTelepon}" type="tel" inputmode="numeric" pattern="^0[0-9]{9,13}$" placeholder="081234567890" required 
+                           th:disabled="${allowedMenu == 'siswa'}"
+                           th:class="${allowedMenu == 'siswa'} ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'">
+                  </div>
+                  <p class="mt-1 text-xs text-gray-500">Format: 0xxxxxxxxxx (10-14 digit)</p>
+                </div>
+
+                <!-- Alamat -->
+                <div class="md:col-span-2">
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Alamat <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-location-dot absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{alamat}" type="text" placeholder="Masukkan alamat lengkap" required 
+                           th:disabled="${allowedMenu == 'siswa'}"
+                           th:class="${allowedMenu == 'siswa'} ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 2: Informasi Akun -->
+            <div class="border-b border-gray-200 pb-6" th:if="${siswaInfo.id == null}">
+              <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-key text-[var(--brand)]"></i>
+                <span>Informasi Akun</span>
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Username -->
+                <div>
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Username <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-user-circle absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{username}" type="text" placeholder="Masukkan username" required minlength="3" 
+                           th:disabled="${allowedMenu == 'siswa'}"
+                           th:class="${allowedMenu == 'siswa'} ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'">
+                  </div>
+                  <p class="mt-1 text-xs text-gray-500">Minimal 3 karakter</p>
+                </div>
+
+                <!-- Password -->
+                <div>
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Password <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{password}" type="password" placeholder="Masukkan password" required 
+                           th:disabled="${allowedMenu == 'siswa'}"
+                           th:class="${allowedMenu == 'siswa'} ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'">
+                  </div>
+                </div>
+
+                <!-- Email -->
+                <div>
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Email <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{email}" type="email" placeholder="Masukkan email" required 
+                           th:disabled="${allowedMenu == 'siswa'}"
+                           th:class="${allowedMenu == 'siswa'} ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'">
+                  </div>
+                </div>
+
+                <!-- Role -->
+                <div>
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Role <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-user-tag absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <select th:field="*{role}" required 
+                            th:disabled="${allowedMenu == 'siswa'}"
+                            th:class="${allowedMenu == 'siswa'} ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed appearance-none' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)] appearance-none'">
+                      <option value="">Pilih Role</option>
+                      <option value="siswa">Siswa</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 3: Informasi Siswa -->
+            <div class="border-b border-gray-200 pb-6">
+              <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-graduation-cap text-[var(--brand)]"></i>
+                <span>Informasi Siswa</span>
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- NIS -->
+                <div>
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">
+                    NIS 
+                    <span th:if="${siswaInfo.id == null}" class="text-red-500">*</span>
+                    <span th:if="${siswaInfo.id != null and siswaInfo.statusKonfirmasi == false}" class="text-gray-400 text-xs">(Input setelah dikonfirmasi)</span>
+                  </label>
+                  <div class="relative">
+                    <i class="fa-solid fa-id-card absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{nis}" type="text" placeholder="Contoh: 20240001" 
+                           th:required="${siswaInfo.id == null}"
+                           th:disabled="${allowedMenu == 'siswa' or (siswaInfo.id != null and siswaInfo.statusKonfirmasi == false)}"
+                           th:class="${(allowedMenu == 'siswa' or (siswaInfo.id != null and siswaInfo.statusKonfirmasi == false)) ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'}">
+                  </div>
+                  <p class="mt-1 text-xs text-gray-500">
+                    <span th:if="${siswaInfo.id != null and siswaInfo.statusKonfirmasi == false}">Input NIS setelah siswa dikonfirmasi</span>
+                    <span th:if="${siswaInfo.id == null or (siswaInfo.id != null and siswaInfo.statusKonfirmasi == true)}">4-20 karakter, hanya angka</span>
+                  </p>
+                </div>
+
+                <!-- Kelas -->
+                <div>
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Kelas <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-chalkboard absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <select th:field="*{kelas}" required 
+                            th:disabled="${allowedMenu == 'siswa'}"
+                            th:class="${allowedMenu == 'siswa'} ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed appearance-none' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)] appearance-none'">
+                      <option value="" disabled th:selected="${siswaInfo.id} == null">Pilih Kelas</option>
+                      <option th:each="wk : ${wkList}" th:value="${wk.namaKelasWalian}" th:text="${wk.namaKelasWalian}">Kelas</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Nilai (Hanya untuk Wali Kelas) -->
+                <div th:if="${allowedMenu == 'all'}">
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Nilai (Opsional)</label>
+                  <div class="relative">
+                    <i class="fa-solid fa-star absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{nilai}" type="number" step="0.01" min="0" max="100" placeholder="0.00 - 100.00" 
+                           th:class="'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'">
+                  </div>
+                  <p class="mt-1 text-xs text-gray-500">Nilai antara 0.00 - 100.00</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tombol Submit -->
+            <div class="flex items-center gap-3">
+              <button th:if="${siswaInfo.id == null}" type="submit" name="add" 
+                      th:disabled="${allowedMenu == 'siswa'}"
+                      th:class="${allowedMenu == 'siswa'} ? 'inline-flex items-center gap-2 bg-gray-400 text-white px-6 py-3 rounded-xl cursor-not-allowed opacity-50' : 'inline-flex items-center gap-2 bg-[var(--brand)] text-white px-6 py-3 rounded-xl hover:opacity-90'"
+                      title="Tambah">
+                <i class="fa-solid fa-plus"></i>
+                <span>Tambah Siswa</span>
+              </button>
+              <button th:if="${siswaInfo.id != null}" type="submit" name="edit" 
+                      th:disabled="${allowedMenu == 'siswa'}"
+                      th:class="${allowedMenu == 'siswa'} ? 'inline-flex items-center gap-2 bg-gray-400 text-white px-6 py-3 rounded-xl cursor-not-allowed opacity-50' : 'inline-flex items-center gap-2 bg-[var(--brand)] text-white px-6 py-3 rounded-xl hover:opacity-90'"
+                      title="Simpan">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>Simpan Perubahan</span>
+              </button>
+              <a th:if="${siswaInfo.id != null}" th:href="@{/siswa}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-gray-300 hover:bg-gray-100" title="Batal">
+                <i class="fa-solid fa-xmark"></i>
+                <span>Batal</span>
+              </a>
+            </div>
+            </form>
+          </th:block>
+          <th:block th:unless="${siswaInfo.id != null}">
+            <form th:action="@{/siswa/submit/}" method="post" class="space-y-6 js-siswa-form" th:object="${siswaInfo}">
+            <!-- Section 1: Informasi Personal -->
+            <div class="border-b border-gray-200 pb-6">
+              <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-user text-[var(--brand)]"></i>
+                <span>Informasi Personal</span>
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Nama Lengkap -->
+                <div class="md:col-span-2">
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Nama Lengkap <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{nama}" type="text" placeholder="Masukkan nama lengkap" required 
+                           th:disabled="${allowedMenu == 'siswa'}"
+                           th:class="${allowedMenu == 'siswa'} ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'">
+                  </div>
+                </div>
+
+                <!-- Tanggal Lahir -->
+                <div>
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Tanggal Lahir <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{tanggalLahir}" type="date" required 
+                           th:disabled="${allowedMenu == 'siswa'}"
+                           th:class="${allowedMenu == 'siswa'} ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'">
+                  </div>
+                </div>
+
+                <!-- Nomor Telepon -->
+                <div>
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Nomor Telepon <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-phone absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{nomorTelepon}" type="tel" inputmode="numeric" pattern="^0[0-9]{9,13}$" placeholder="081234567890" required 
+                           th:disabled="${allowedMenu == 'siswa'}"
+                           th:class="${allowedMenu == 'siswa'} ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'">
+                  </div>
+                  <p class="mt-1 text-xs text-gray-500">Format: 0xxxxxxxxxx (10-14 digit)</p>
+                </div>
+
+                <!-- Alamat -->
+                <div class="md:col-span-2">
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Alamat <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-location-dot absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{alamat}" type="text" placeholder="Masukkan alamat lengkap" required 
+                           th:disabled="${allowedMenu == 'siswa'}"
+                           th:class="${allowedMenu == 'siswa'} ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 2: Informasi Akun -->
+            <div class="border-b border-gray-200 pb-6" th:if="${siswaInfo.id == null}">
+              <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-key text-[var(--brand)]"></i>
+                <span>Informasi Akun</span>
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Username -->
+                <div>
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Username <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-user-circle absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{username}" type="text" placeholder="Masukkan username" required minlength="3" 
+                           th:disabled="${allowedMenu == 'siswa'}"
+                           th:class="${allowedMenu == 'siswa'} ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'">
+                  </div>
+                  <p class="mt-1 text-xs text-gray-500">Minimal 3 karakter</p>
+                </div>
+
+                <!-- Password -->
+                <div>
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Password <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{password}" type="password" placeholder="Masukkan password" required 
+                           th:disabled="${allowedMenu == 'siswa'}"
+                           th:class="${allowedMenu == 'siswa'} ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'">
+                  </div>
+                </div>
+
+                <!-- Email -->
+                <div>
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Email <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{email}" type="email" placeholder="Masukkan email" required 
+                           th:disabled="${allowedMenu == 'siswa'}"
+                           th:class="${allowedMenu == 'siswa'} ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'">
+                  </div>
+                </div>
+
+                <!-- Role -->
+                <div>
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Role <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-user-tag absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <select th:field="*{role}" required 
+                            th:disabled="${allowedMenu == 'siswa'}"
+                            th:class="${allowedMenu == 'siswa'} ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed appearance-none' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)] appearance-none'">
+                      <option value="">Pilih Role</option>
+                      <option value="siswa">Siswa</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 3: Informasi Siswa -->
+            <div class="border-b border-gray-200 pb-6">
+              <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-graduation-cap text-[var(--brand)]"></i>
+                <span>Informasi Siswa</span>
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- NIS -->
+                <div>
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">
+                    NIS 
+                    <span th:if="${siswaInfo.id == null}" class="text-red-500">*</span>
+                    <span th:if="${siswaInfo.id != null and siswaInfo.statusKonfirmasi == false}" class="text-gray-400 text-xs">(Input setelah dikonfirmasi)</span>
+                  </label>
+                  <div class="relative">
+                    <i class="fa-solid fa-id-card absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{nis}" type="text" placeholder="Contoh: 20240001" 
+                           th:required="${siswaInfo.id == null}"
+                           th:disabled="${allowedMenu == 'siswa' or (siswaInfo.id != null and siswaInfo.statusKonfirmasi == false)}"
+                           th:class="${(allowedMenu == 'siswa' or (siswaInfo.id != null and siswaInfo.statusKonfirmasi == false)) ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'}">
+                  </div>
+                  <p class="mt-1 text-xs text-gray-500">
+                    <span th:if="${siswaInfo.id != null and siswaInfo.statusKonfirmasi == false}">Input NIS setelah siswa dikonfirmasi</span>
+                    <span th:if="${siswaInfo.id == null or (siswaInfo.id != null and siswaInfo.statusKonfirmasi == true)}">4-20 karakter, hanya angka</span>
+                  </p>
+                </div>
+
+                <!-- Kelas -->
+                <div>
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Kelas <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <i class="fa-solid fa-chalkboard absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <select th:field="*{kelas}" required 
+                            th:disabled="${allowedMenu == 'siswa'}"
+                            th:class="${allowedMenu == 'siswa'} ? 'w-full pl-10 rounded-xl border border-gray-300 bg-gray-50 text-gray-500 px-4 py-3 focus:outline-none pointer-events-none cursor-not-allowed appearance-none' : 'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)] appearance-none'">
+                      <option value="" disabled th:selected="${siswaInfo.id} == null">Pilih Kelas</option>
+                      <option th:each="wk : ${wkList}" th:value="${wk.namaKelasWalian}" th:text="${wk.namaKelasWalian}">Kelas</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Nilai (Hanya untuk Wali Kelas) -->
+                <div th:if="${allowedMenu == 'all'}">
+                  <label class="block text-sm text-gray-600 mb-2 font-medium">Nilai (Opsional)</label>
+                  <div class="relative">
+                    <i class="fa-solid fa-star absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input th:field="*{nilai}" type="number" step="0.01" min="0" max="100" placeholder="0.00 - 100.00" 
+                           th:class="'w-full pl-10 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]'">
+                  </div>
+                  <p class="mt-1 text-xs text-gray-500">Nilai antara 0.00 - 100.00</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tombol Submit -->
+            <div class="flex items-center gap-3">
+              <button th:if="${siswaInfo.id == null}" type="submit" name="add" 
+                      th:disabled="${allowedMenu == 'siswa'}"
+                      th:class="${allowedMenu == 'siswa'} ? 'inline-flex items-center gap-2 bg-gray-400 text-white px-6 py-3 rounded-xl cursor-not-allowed opacity-50' : 'inline-flex items-center gap-2 bg-[var(--brand)] text-white px-6 py-3 rounded-xl hover:opacity-90'"
+                      title="Tambah">
+                <i class="fa-solid fa-plus"></i>
+                <span>Tambah Siswa</span>
+              </button>
+              <button th:if="${siswaInfo.id != null}" type="submit" name="edit" 
+                      th:disabled="${allowedMenu == 'siswa'}"
+                      th:class="${allowedMenu == 'siswa'} ? 'inline-flex items-center gap-2 bg-gray-400 text-white px-6 py-3 rounded-xl cursor-not-allowed opacity-50' : 'inline-flex items-center gap-2 bg-[var(--brand)] text-white px-6 py-3 rounded-xl hover:opacity-90'"
+                      title="Simpan">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>Simpan Perubahan</span>
+              </button>
+              <a th:if="${siswaInfo.id != null}" th:href="@{/siswa}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-gray-300 hover:bg-gray-100" title="Batal">
+                <i class="fa-solid fa-xmark"></i>
+                <span>Batal</span>
+              </a>
+            </div>
+            </form>
+          </th:block>
+        </section>
+
+      <section class="bg-white rounded-xl shadow-sm p-6 border-t-4 border-[var(--brand)]">
+        <div class="flex items-center gap-2 mb-4">
+          <i class="fa-solid fa-list text-gray-700"></i>
+          <h2 class="text-lg font-semibold">Daftar Siswa</h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 js-data-table table-center" data-page-size="15">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600">No</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600">NIS</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600">Nama</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600">Tanggal Lahir</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600">Alamat</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600">Nomor Telepon</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600">Kelas</th>
+                <th th:if="${allowedMenu == 'admin'}" class="px-4 py-2 text-left text-xs font-medium text-gray-600">Mata Pelajaran</th>
+                <th th:if="${allowedMenu == 'admin'}" class="px-4 py-2 text-left text-xs font-medium text-gray-600">Nilai</th>
+                <th th:if="${allowedMenu == 'admin'}" class="px-4 py-2 text-left text-xs font-medium text-gray-600">Status Konfirmasi</th>
+                <th th:if="${allowedMenu == 'admin'}" class="px-4 py-2 text-left text-xs font-medium text-gray-600">Aksi</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr th:if="${(siswaList == null or siswaList.size() == 0) and allowedMenu == 'admin'}" class="hover:bg-gray-50">
+                <td colspan="11" class="px-4 py-8 text-center text-gray-500">
+                  <div class="flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-inbox text-4xl text-gray-300"></i>
+                    <p class="text-sm">Tidak ada data siswa</p>
+                  </div>
+                </td>
+              </tr>
+              <tr th:if="${(siswaList == null or siswaList.size() == 0) and allowedMenu != 'admin'}" class="hover:bg-gray-50">
+                <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+                  <div class="flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-inbox text-4xl text-gray-300"></i>
+                    <p class="text-sm">Tidak ada data siswa</p>
+                  </div>
+                </td>
+              </tr>
+              <tr th:each="s : ${siswaList}" class="hover:bg-gray-50">
+                <td class="px-4 py-2"><span class="js-row-no"></span></td>
+                <td class="px-4 py-2" th:text="${(s.nis != null and s.nis != '') ? s.nis : '-'}">-</td>
+                <td class="px-4 py-2" th:text="${s.nama}">Nama</td>
+                <td class="px-4 py-2" th:text="${s.tanggalLahir != null ? #dates.format(s.tanggalLahir,'yyyy-MM-dd') : ''}">2000-01-01</td>
+                <td class="px-4 py-2" th:text="${s.alamat}">Alamat</td>
+                <td class="px-4 py-2" th:text="${s.nomorTelepon}">08123456789</td>
+                <td class="px-4 py-2" th:text="${s.kelas}">XII IPA</td>
+                <td th:if="${allowedMenu == 'admin'}" class="px-4 py-2">
+                  <div class="flex flex-wrap gap-1">
+                    <span th:each="mapel, iterStat : ${s.mataPelajaran}" 
+                          class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium inline-flex items-center gap-1">
+                      <i class="fa-solid fa-book text-xs"></i>
+                      <span th:text="${mapel.nama + ' (' + mapel.kode + ')'}">Mapel</span>
+                    </span>
+                    <span th:if="${s.mataPelajaran == null or s.mataPelajaran.isEmpty()}" class="text-gray-400 text-xs">-</span>
+                  </div>
+                </td>
+                <td th:if="${allowedMenu == 'admin'}" class="px-4 py-2" th:text="${s.nilaiRataRata != null ? s.nilaiRataRata : ''}"></td>
+                <td th:if="${allowedMenu == 'admin'}" class="px-4 py-2">
+                  <span th:if="${s.statusKonfirmasi}" class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold inline-flex items-center gap-1">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Terkonfirmasi</span>
+                  </span>
+                  <span th:if="${s.statusKonfirmasi == false}" class="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold inline-flex items-center gap-1">
+                    <i class="fa-solid fa-clock"></i>
+                    <span>Menunggu</span>
+                  </span>
+                </td>
+                <td th:if="${allowedMenu == 'admin'}" class="px-4 py-2">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <!-- Tombol Accept/Reject untuk Admin (hanya untuk siswa yang belum dikonfirmasi) -->
+                    <th:block th:if="${s.statusKonfirmasi == false}">
+                      <form th:action="@{'/siswa/konfirmasi/' + ${s.id} + '/accept'}" method="post" class="inline">
+                        <button type="submit" class="px-2 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-xs inline-flex items-center gap-1" title="Terima">
+                          <i class="fa-solid fa-check"></i>
+                          <span>Terima</span>
+                        </button>
+                      </form>
+                      <form th:action="@{'/siswa/konfirmasi/' + ${s.id} + '/reject'}" method="post" class="inline">
+                        <button type="submit" class="px-2 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-xs inline-flex items-center gap-1" title="Tolak">
+                          <i class="fa-solid fa-xmark"></i>
+                          <span>Tolak</span>
+                        </button>
+                      </form>
+                    </th:block>
+                    <!-- Tombol untuk Admin (Edit, Delete, Pilih Mapel) -->
+                    <a th:href="@{'/siswa/' + ${s.id}}" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-100" title="Edit">
+                      <i class="fa-solid fa-pen"></i>
+                    </a>
+                    <form th:action="@{'/siswa/submit/' + ${s.id}}" method="post" class="inline">
+                      <button type="submit" name="delete" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500 text-white hover:opacity-90" title="Hapus">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </form>
+                    <button type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 js-open-mapel-modal" th:attr="data-siswa-id=${s.id},data-selected=${s.mapelList}" title="Pilih Mapel">
+                      <i class="fa-solid fa-book"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <!-- Modal Pilih Mapel -->
+      <div id="mapel-modal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold">Pilih Mata Pelajaran</h3>
+            <button type="button" class="w-10 h-10 inline-flex items-center justify-center rounded-lg border border-gray-300 hover:bg-gray-100 js-close-mapel-modal">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <form id="mapel-form" method="post">
+            <div class="space-y-4">
+              <input type="hidden" name="siswaId" id="mapel-siswa-id">
+              <label class="block text-sm text-gray-600 mb-1">Mata Pelajaran</label>
+              <select name="mapelIds" id="mapel-select" multiple class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]">
+                <option th:each="m : ${mapelList}" th:value="${m.idMataPelajaran}" th:text="${m.nama + ' (' + m.kode + ')'}">Mapel</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-3 mt-6">
+              <button type="submit" class="inline-flex items-center gap-2 bg-[var(--brand)] text-white px-4 py-2 rounded-lg hover:opacity-90" title="Simpan">
+                <i class="fa-solid fa-check"></i>
+              </button>
+              <button type="button" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 js-close-mapel-modal" title="Batal">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      </div>
+    </div>
+  </div>
+  <div th:replace="alert :: alerts"></div>
+</body>
+</html>

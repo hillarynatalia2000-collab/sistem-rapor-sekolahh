@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Masuk</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/person.css}">
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 text-white" th:attr="data-success=${success},data-error=${error}">
+  <div class="flex items-center justify-center min-h-screen p-6">
+    <div class="w-full max-w-md">
+      <div class="rounded-2xl bg-slate-800 shadow-2xl ring-1 ring-white/10 p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <img th:src="@{/img/Logo.png}" src="/img/Logo.png" alt="SI-SWA" class="w-10 h-10 object-contain">
+          <div>
+            <div class="text-xl font-semibold">SI-SWA</div>
+            <div class="text-sm text-white/80">Masuk dengan username dan password</div>
+          </div>
+        </div>
+        <form th:action="@{/login}" method="post" class="space-y-5 js-login-form">
+          <div>
+            <label class="block text-sm text-white/80 mb-1">Username</label>
+            <div class="relative">
+              <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
+              <input name="username" type="text" placeholder="Masukkan username" required minlength="3" class="w-full pl-10 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm text-white/80 mb-1">Password</label>
+            <div class="relative">
+              <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
+              <input name="password" type="password" placeholder="Masukkan password" required class="w-full pl-10 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-500 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]">
+            </div>
+          </div>
+          <button type="submit" class="w-full inline-flex items-center justify-center gap-2 bg-[var(--brand)] text-white px-4 py-3 rounded-xl hover:opacity-90">
+            <i class="fa-solid fa-right-to-bracket"></i>
+            <span>Masuk</span>
+          </button>
+        </form>
+        <div class="mt-6 text-center">
+          <a th:href="@{/registrasi}" class="text-sm text-white/80 hover:text-white">
+            Belum punya akun? <span class="text-[var(--brand)] font-semibold">Daftar</span>
+          </a>
+        </div>
+      </div>
+      <div class="mt-6 text-center text-white/80 text-sm">
+        <span class="opacity-80">©</span> Sistem Sekolah
+      </div>
+    </div>
+  </div>
+  <div th:replace="alert :: alerts"></div>
+</body>
+</html>

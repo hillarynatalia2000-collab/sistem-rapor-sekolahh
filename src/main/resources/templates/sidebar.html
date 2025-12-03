@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <!-- Sidebar untuk Siswa -->
+  <aside th:fragment="sidebar-siswa" class="bg-white rounded-xl shadow-sm p-4 border-t-4 border-[var(--brand)] sticky top-24 self-start">
+    <nav class="flex flex-col gap-2 text-sm">
+      <!-- Dashboard: aktif -->
+      <a th:href="@{/dashboard}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100 bg-blue-50">
+        <i class="fa-solid fa-gauge-high"></i>
+        <span>Dashboard</span>
+      </a>
+      
+      <!-- Nilai: aktif -->
+      <a th:href="@{/siswa/nilai}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>Nilai</span>
+      </a>
+      
+      <!-- Profile: aktif -->
+      <a th:href="@{/profile}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+        <i class="fa-solid fa-user"></i>
+        <span>Profile</span>
+      </a>
+      
+      <!-- Logout -->
+      <a th:href="@{/login}" class="mt-2 px-3 py-2 rounded-lg bg-red-500 text-white hover:opacity-90 inline-flex items-center gap-2">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Keluar</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Sidebar untuk Admin -->
+  <aside th:fragment="sidebar-admin" class="bg-white rounded-xl shadow-sm p-4 border-t-4 border-[var(--brand)] sticky top-24 self-start">
+    <nav class="flex flex-col gap-2 text-sm">
+      <!-- Dashboard: aktif untuk admin -->
+      <a th:href="@{/dashboard}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span>Dashboard</span>
+      </a>
+      
+      <!-- Siswa: aktif -->
+      <a th:href="@{/siswa}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span>Siswa</span>
+      </a>
+      
+      <!-- Wali Kelas: aktif -->
+      <a th:href="@{/walikelas}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+        <i class="fa-solid fa-chalkboard-user"></i>
+        <span>Wali Kelas</span>
+      </a>
+      
+      <!-- Mata Pelajaran: aktif -->
+      <a th:href="@{/mapel}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+        <i class="fa-solid fa-book"></i>
+        <span>Mata Pelajaran</span>
+      </a>
+      
+      <!-- Profile: aktif -->
+      <a th:href="@{/profile}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+        <i class="fa-solid fa-user"></i>
+        <span>Profile</span>
+      </a>
+      
+      <!-- Logout -->
+      <a th:href="@{/login}" class="mt-2 px-3 py-2 rounded-lg bg-red-500 text-white hover:opacity-90 inline-flex items-center gap-2">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Keluar</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Sidebar untuk Wali Kelas -->
+  <aside th:fragment="sidebar-walikelas" class="bg-white rounded-xl shadow-sm p-4 border-t-4 border-[var(--brand)] sticky top-24 self-start">
+    <nav class="flex flex-col gap-2 text-sm">
+      <!-- Siswa: aktif -->
+      <a th:href="@{/siswa}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span>Siswa</span>
+      </a>
+      
+      <!-- Wali Kelas: aktif -->
+      <a th:href="@{/walikelas}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+        <i class="fa-solid fa-chalkboard-user"></i>
+        <span>Wali Kelas</span>
+      </a>
+      
+      <!-- Mata Pelajaran: aktif -->
+      <a th:href="@{/mapel}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+        <i class="fa-solid fa-book"></i>
+        <span>Mata Pelajaran</span>
+      </a>
+      
+      <!-- Raport: aktif -->
+      <a th:href="@{/raport}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+        <i class="fa-solid fa-file-lines"></i>
+        <span>Raport</span>
+      </a>
+      
+      <!-- Profile: aktif -->
+      <a th:href="@{/profile}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+        <i class="fa-solid fa-user"></i>
+        <span>Profile</span>
+      </a>
+      
+      <!-- Logout -->
+      <a th:href="@{/login}" class="mt-2 px-3 py-2 rounded-lg bg-red-500 text-white hover:opacity-90 inline-flex items-center gap-2">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Keluar</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Sidebar Universal - Otomatis memilih berdasarkan allowedMenu -->
+  <aside th:fragment="sidebar(disabled, allowed)" class="bg-white rounded-xl shadow-sm p-4 border-t-4 border-[var(--brand)] sticky top-24 self-start">
+    <nav class="flex flex-col gap-2 text-sm">
+      <!-- Sidebar untuk Siswa -->
+      <th:block th:if="${allowed != null and allowed.toString() == 'siswa'}">
+        <a th:href="@{/dashboard}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100 bg-blue-50">
+          <i class="fa-solid fa-gauge-high"></i>
+          <span>Dashboard</span>
+        </a>
+        <a th:href="@{/siswa/nilai}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>Nilai</span>
+        </a>
+        <a th:href="@{/profile}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+          <i class="fa-solid fa-user"></i>
+          <span>Profile</span>
+        </a>
+      </th:block>
+
+      <!-- Sidebar untuk Admin -->
+      <th:block th:if="${allowed != null and allowed.toString() == 'admin'}">
+        <a th:href="@{/dashboard}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>Dashboard</span>
+        </a>
+        <a th:href="@{/siswa}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+          <i class="fa-solid fa-graduation-cap"></i>
+          <span>Siswa</span>
+        </a>
+        <a th:href="@{/walikelas}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100 bg-blue-50">
+          <i class="fa-solid fa-chalkboard-user"></i>
+          <span>Wali Kelas</span>
+        </a>
+        <a th:href="@{/mapel}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+          <i class="fa-solid fa-book"></i>
+          <span>Mata Pelajaran</span>
+        </a>
+        <a th:href="@{/profile}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+          <i class="fa-solid fa-user"></i>
+          <span>Profile</span>
+        </a>
+      </th:block>
+
+      <!-- Sidebar untuk Wali Kelas (all) -->
+      <th:block th:if="${allowed != null and allowed.toString() == 'all'}">
+        <a th:href="@{/dashboard}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>Dashboard</span>
+        </a>
+        <a th:href="@{/siswa}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+          <i class="fa-solid fa-graduation-cap"></i>
+          <span>Siswa</span>
+        </a>
+        <a th:href="@{/raport}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+          <i class="fa-solid fa-file-lines"></i>
+          <span>Raport</span>
+        </a>
+        <a th:href="@{/profile}" class="px-3 py-2 rounded-lg border border-gray-300 inline-flex items-center gap-2 hover:bg-gray-100">
+          <i class="fa-solid fa-user"></i>
+          <span>Profile</span>
+        </a>
+      </th:block>
+
+      <!-- Logout untuk semua role -->
+      <a th:href="@{/login}" class="mt-2 px-3 py-2 rounded-lg bg-red-500 text-white hover:opacity-90 inline-flex items-center gap-2">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Keluar</span>
+      </a>
+    </nav>
+  </aside>
+</body>
+</html>

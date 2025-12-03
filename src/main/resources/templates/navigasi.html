@@ -1,0 +1,10 @@
+<header th:fragment="nav" class="bg-gradient-to-r from-[#0b1f3a] to-[#1e3a8a] shadow-md fixed top-0 left-0 right-0 z-50">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex items-center gap-3 text-white">
+    <img th:src="@{/img/Logo.png}" alt="SI-SWA" class="h-10 w-auto drop-shadow"/>
+    <span class="text-xl font-semibold tracking-wide">SI-SWA</span>
+    <div class="ml-auto flex items-center gap-2">
+      <i class="fa-solid fa-user"></i>
+      <span th:text="${loginName} != null ? ${loginName} : 'Tidak Login'"></span>
+    </div>
+  </div>
+  </header>

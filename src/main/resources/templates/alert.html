@@ -1,0 +1,489 @@
+<div th:fragment="alerts">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    .swal2-container.swal2-backdrop-show{backdrop-filter:blur(4px)}
+    .table-center th, .table-center td{ text-align:center; vertical-align:middle }
+    .choices{width:100%; margin-bottom:0}
+    .choices .choices__inner{min-height:40px; height:40px; border-radius:0.5rem; border:1px solid #d1d5db; padding:0.5rem 0.75rem; display:flex; align-items:center}
+    .choices[data-type*=select-one] .choices__inner{padding:0.5rem 0.75rem; height:40px}
+    .choices .choices__list--single{padding:0}
+  </style>
+  <script>
+    (function(){
+      const brand = getComputedStyle(document.documentElement).getPropertyValue('--brand').trim() || '#1e3a8a';
+      const SA = Swal.mixin({
+        buttonsStyling:false,
+        color:'#1f2937',
+        background:'#ffffff',
+        iconColor:brand,
+        confirmButtonColor:brand,
+        cancelButtonColor:'#6b7280',
+        backdrop:'rgba(17,24,39,0.45)',
+        customClass:{
+          popup:'rounded-2xl shadow-2xl',
+          title:'text-xl font-semibold',
+          htmlContainer:'text-sm',
+          confirmButton:'bg-[var(--brand)] text-white rounded-lg px-4 py-2 hover:opacity-90',
+          cancelButton:'bg-gray-200 text-gray-800 rounded-lg px-4 py-2 hover:bg-gray-300'
+        }
+      });
+      function showError(msg){ SA.fire({icon:'error', title:'Gagal', text:msg}); }
+      function showSuccess(msg){ SA.fire({icon:'success', title:'Berhasil', text:msg}); }
+      function confirmDelete(form, submitter){
+        SA.fire({title:'Hapus data?', text:'Tindakan ini tidak bisa dibatalkan', icon:'warning', showCancelButton:true, confirmButtonText:'Ya, hapus', cancelButtonText:'Batal'})
+          .then((res)=>{
+            if(res.isConfirmed){
+              if(typeof form.requestSubmit === 'function'){
+                form.requestSubmit(submitter || null);
+              } else {
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = (submitter && submitter.name) ? submitter.name : 'delete';
+                hidden.value = (submitter && submitter.value) ? submitter.value : 'true';
+                form.appendChild(hidden);
+                form.submit();
+              }
+            }
+          });
+      }
+      function isDigits(str){ return /^\d+$/.test(str); }
+      function validNIS(nis){ return typeof nis === 'string' && isDigits(nis) && nis.length >= 4 && nis.length <= 20; }
+      function validDate(str){ return !str || /^\d{4}-\d{2}-\d{2}$/.test(str); }
+      function validNilaiInput(str){
+        if(!str || !str.trim()) return true;
+        const parts = str.split(',');
+        for(let i=0;i<parts.length;i++){
+          const v = parseFloat(parts[i].trim());
+          if(Number.isNaN(v)) return false;
+          if(v < 0 || v > 100) return false;
+        }
+        return true;
+      }
+      function initDataTable(table){
+        const pageSizeAttr = parseInt(table.getAttribute('data-page-size'),10);
+        const pageSize = Number.isNaN(pageSizeAttr) ? 15 : pageSizeAttr;
+        const tbody = table.querySelector('tbody');
+        if(!tbody) return;
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const wrap = table.closest('.overflow-x-auto') || table.parentElement;
+        const controls = document.createElement('div');
+        controls.className = 'flex items-center justify-between mb-2';
+        const left = document.createElement('div');
+        left.className = 'flex items-center gap-2 flex-wrap';
+        const search = document.createElement('input');
+        search.type = 'text';
+        search.placeholder = 'Cari...';
+        search.className = 'rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]';
+        left.appendChild(search);
+        const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+        const sortWrap = document.createElement('div');
+        sortWrap.className = 'flex items-center gap-2';
+        const sortLabel = document.createElement('span');
+        sortLabel.className = 'text-sm text-gray-600';
+        sortLabel.textContent = 'Urutkan:';
+        const sortSelect = document.createElement('select');
+        sortSelect.className = 'rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]';
+        headers.forEach((h, idx) => {
+          if(h.toLowerCase() === 'aksi') return; // skip aksi
+          const opt = document.createElement('option');
+          opt.value = String(idx);
+          opt.textContent = h || ('Kolom '+(idx+1));
+          sortSelect.appendChild(opt);
+        });
+        const orderBtn = document.createElement('button');
+        orderBtn.type = 'button';
+        orderBtn.className = 'px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-100';
+        orderBtn.textContent = 'Naik';
+        sortWrap.appendChild(sortLabel);
+        sortWrap.appendChild(sortSelect);
+        sortWrap.appendChild(orderBtn);
+        left.appendChild(sortWrap);
+        const right = document.createElement('div');
+        right.className = 'flex items-center gap-2';
+        const info = document.createElement('span');
+        info.className = 'text-sm text-gray-600';
+        const prev = document.createElement('button');
+        prev.type = 'button';
+        prev.className = 'px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-100';
+        prev.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+        const next = document.createElement('button');
+        next.type = 'button';
+        next.className = 'px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-100';
+        next.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+        prev.setAttribute('aria-label','Sebelumnya');
+        next.setAttribute('aria-label','Berikutnya');
+        right.appendChild(info);
+        right.appendChild(prev);
+        right.appendChild(next);
+        controls.appendChild(left);
+        controls.appendChild(right);
+        if(wrap && wrap.insertBefore){ wrap.insertBefore(controls, wrap.firstChild); }
+        let filtered = rows.slice();
+        let sorted = filtered.slice();
+        let sortIndex = 0; // default: kolom "No" (posisi 0)
+        let sortAsc = true;
+        let page = 1;
+        function render(){
+          const total = filtered.length;
+          const totalPages = Math.max(1, Math.ceil(total / pageSize));
+          if(page > totalPages) page = totalPages;
+          const start = (page - 1) * pageSize;
+          const end = start + pageSize;
+          rows.forEach(r => { r.style.display = 'none'; });
+          for(let i=start;i<end && i<total;i++){
+            const row = sorted[i];
+            row.style.display = '';
+            const noCell = row.querySelector('.js-row-no');
+            if(noCell) noCell.textContent = (i + 1);
+          }
+          info.textContent = 'Halaman '+page+' / '+totalPages+' • '+total+' data';
+          prev.disabled = page <= 1;
+          next.disabled = page >= totalPages;
+          prev.classList.toggle('opacity-50', prev.disabled);
+          prev.classList.toggle('cursor-not-allowed', prev.disabled);
+          next.classList.toggle('opacity-50', next.disabled);
+          next.classList.toggle('cursor-not-allowed', next.disabled);
+        }
+        function applySearch(){
+          const q = search.value.trim().toLowerCase();
+          if(!q){ filtered = rows.slice(); page = 1; render(); return; }
+          filtered = rows.filter(r => r.textContent.toLowerCase().includes(q));
+          page = 1;
+          applySort();
+        }
+        function cellValue(row, headerIdx){
+          // headerIdx 0 adalah kolom No; kembalikan indeks asli untuk stabilitas
+          if(headerIdx === 0){ return String(rows.indexOf(row)+1); }
+          const td = row.querySelectorAll('td')[headerIdx];
+          if(!td) return '';
+          const txt = td.textContent.trim();
+          const num = parseFloat(txt.replace(/[^0-9.-]/g,''));
+          if(!Number.isNaN(num) && txt.match(/^[-+]?\d*(?:\.\d+)?$/)) return num;
+          return txt.toLowerCase();
+        }
+        function applySort(){
+          sorted = filtered.slice().sort(function(a,b){
+            const va = cellValue(a, sortIndex);
+            const vb = cellValue(b, sortIndex);
+            let cmp = 0;
+            if(typeof va === 'number' && typeof vb === 'number') cmp = va - vb;
+            else cmp = String(va).localeCompare(String(vb));
+            return sortAsc ? cmp : -cmp;
+          });
+          page = 1;
+          render();
+        }
+        search.addEventListener('input', applySearch);
+        prev.addEventListener('click', function(){ if(page>1){ page--; render(); } });
+        next.addEventListener('click', function(){ page++; render(); });
+        sortSelect.addEventListener('change', function(){ sortIndex = parseInt(sortSelect.value,10); applySort(); });
+        orderBtn.addEventListener('click', function(){ sortAsc = !sortAsc; orderBtn.textContent = sortAsc ? 'Naik' : 'Turun'; applySort(); });
+        applySort();
+      }
+      function attach(){
+        var sm = document.body ? (document.body.getAttribute('data-success')||'') : '';
+        var em = document.body ? (document.body.getAttribute('data-error')||'') : '';
+        // Prioritaskan success message jika ada
+        if(sm && sm.trim()){ 
+          showSuccess(sm); 
+        } else if(em && em.trim()){ 
+          showError(em); 
+        }
+        const addForm = document.querySelector('.js-person-form');
+        if(addForm){
+          addForm.addEventListener('submit', function(e){
+            const nama = addForm.querySelector('[name="nama"]').value.trim();
+            const tanggal = addForm.querySelector('[name="tanggalLahir"]').value;
+            const alamat = addForm.querySelector('[name="alamat"]').value.trim();
+            const tel = addForm.querySelector('[name="nomorTelepon"]').value.trim();
+            if(!nama || !tanggal || !alamat || !tel){ e.preventDefault(); showError('Semua field wajib diisi'); return; }
+            if(!/^0[0-9]{9,13}$/.test(tel)){ e.preventDefault(); showError('Nomor telepon harus diawali 0 dan 10–14 digit'); return; }
+          });
+        }
+        const mapelForm = document.querySelector('.js-mapel-form');
+        if(mapelForm){
+          mapelForm.addEventListener('submit', function(e){
+            const nama = (mapelForm.querySelector('[name="nama"]')||{}).value||'';
+            const kode = (mapelForm.querySelector('[name="kode"]')||{}).value||'';
+            const jam = parseInt((mapelForm.querySelector('[name="jumlahJam"]')||{}).value||'0',10);
+            if(!nama.trim() || !kode.trim() || !jam || jam < 1){ e.preventDefault(); showError('Nama, kode, dan jumlah jam wajib diisi'); return; }
+          });
+        }
+        const siswaLink = document.querySelector('.js-siswa-link-form');
+        if(siswaLink){
+          siswaLink.addEventListener('submit', function(e){
+            const personId = siswaLink.querySelector('[name="personId"]').value;
+            const nis = siswaLink.querySelector('[name="nis"]').value.trim();
+            const kelas = siswaLink.querySelector('[name="kelas"]').value.trim();
+            if(!personId){ e.preventDefault(); showError('Pilih nama terlebih dahulu'); return; }
+            if(!validNIS(nis)){ e.preventDefault(); showError('NIS harus berupa 4–20 digit angka'); return; }
+            if(!kelas){ e.preventDefault(); showError('Kelas wajib diisi'); return; }
+          });
+        }
+        const siswaForm = document.querySelector('.js-siswa-form');
+       if(siswaForm){
+          siswaForm.addEventListener('submit', function(e){
+            // Cek apakah user adalah siswa - jika ya, prevent submit
+            const body = document.body;
+            const allowedMenu = body ? (body.getAttribute('data-allowed-menu') || '') : '';
+            if(allowedMenu === 'siswa'){
+              e.preventDefault();
+              return false;
+            }
+            const isAdd = !!siswaForm.querySelector('button[name="add"]');
+            if(!isAdd) return; // validasi ini hanya untuk mode tambah
+            const personField = siswaForm.querySelector('[name="personId"]');
+            const personId = personField ? personField.value : '';
+            const nis = siswaForm.querySelector('[name="nis"]').value.trim();
+            const kelas = siswaForm.querySelector('[name="kelas"]').value.trim();
+            if(!personId){ e.preventDefault(); showError('Pilih nama terlebih dahulu'); return; }
+            if(!validNIS(nis)){ e.preventDefault(); showError('NIS harus berupa 4–20 digit angka'); return; }
+            if(!kelas){ e.preventDefault(); showError('Kelas wajib diisi'); return; }
+          });
+          const select = siswaForm.querySelector('.js-person-select');
+          if(select && window.Choices){
+            new Choices(select, { searchEnabled: true, shouldSort: false, itemSelectText: '', allowHTML: false });
+          }
+          const kelasSelect = siswaForm.querySelector('.js-kelas-select');
+          if(kelasSelect && window.Choices){
+            new Choices(kelasSelect, { searchEnabled: true, shouldSort: false, itemSelectText: '', allowHTML: false });
+          }
+       }
+       document.querySelectorAll('form[action*="/siswa/submit/"]').forEach(function(f){
+          const btnEdit = f.querySelector('button[name="edit"]');
+          if(btnEdit){
+            f.addEventListener('submit', function(e){
+              const nis = (f.querySelector('[name="nis"]')||{}).value||'';
+              const kelas = (f.querySelector('[name="kelas"]')||{}).value||'';
+              if(!validNIS(nis)){ e.preventDefault(); showError('NIS tidak valid'); return; }
+              if(!kelas.trim()){ e.preventDefault(); showError('Kelas wajib diisi'); return; }
+            });
+          }
+        });
+        const wkForm = document.querySelector('.js-wk-form');
+        if(wkForm){
+          wkForm.addEventListener('submit', function(e){
+            const personIdField = wkForm.querySelector('[name="personId"]');
+            const isAddFromPerson = !!personIdField;
+            const kelasWalian = (wkForm.querySelector('[name="namaKelasWalian"]')||{}).value||'';
+            if(isAddFromPerson){
+              const personId = personIdField.value||'';
+              if(!personId){ e.preventDefault(); showError('Pilih nama terlebih dahulu'); return; }
+              if(!kelasWalian.trim()){ e.preventDefault(); showError('Nama kelas wajib diisi'); return; }
+            } else {
+              const nama = (wkForm.querySelector('[name="nama"]')||{}).value||'';
+              const tanggal = (wkForm.querySelector('[name="tanggalLahir"]')||{}).value||'';
+              const alamat = (wkForm.querySelector('[name="alamat"]')||{}).value||'';
+              const tel = (wkForm.querySelector('[name="nomorTelepon"]')||{}).value||'';
+              if(!nama.trim() || !tanggal || !alamat.trim() || !tel.trim() || !kelasWalian.trim()){ e.preventDefault(); showError('Semua field wajib diisi'); return; }
+              if(!validDate(tanggal)){ e.preventDefault(); showError('Tanggal lahir harus format yyyy-MM-dd'); return; }
+              if(!/^0[0-9]{9,13}$/.test(tel)){ e.preventDefault(); showError('Nomor telepon harus diawali 0 dan 10–14 digit'); return; }
+            }
+          });
+          const wkSelect = wkForm.querySelector('.js-wk-person-select');
+          if(wkSelect && window.Choices){
+            new Choices(wkSelect, { searchEnabled: true, shouldSort: false, itemSelectText: '', allowHTML: false });
+          }
+          const wkKelasSelect = wkForm.querySelector('.js-wk-kelas-select');
+          let wkKelasChoices = null;
+          if(wkKelasSelect && window.Choices){
+            wkKelasChoices = new Choices(wkKelasSelect, { searchEnabled: true, shouldSort: false, itemSelectText: '', allowHTML: false, placeholder: true, placeholderValue: 'Pilih Kelas' });
+          }
+          const addKelasBtn = wkForm.querySelector('.js-add-kelas');
+          if(addKelasBtn){
+            addKelasBtn.addEventListener('click', function(){
+              SA.fire({
+                title:'Tambah Kelas',
+                input:'text',
+                inputPlaceholder:'Contoh: XI IPA',
+                showCancelButton:true,
+                confirmButtonText:'Tambah',
+                cancelButtonText:'Batal'
+              }).then(function(res){
+                const val = (res && res.value) ? String(res.value).trim() : '';
+                if(!val){ return; }
+                const exists = Array.from(wkKelasSelect.querySelectorAll('option')).some(function(o){ return (o.value||'').trim().toLowerCase() === val.toLowerCase(); });
+                if(!exists){
+                  const opt = document.createElement('option');
+                  opt.value = val;
+                  opt.textContent = val;
+                  wkKelasSelect.appendChild(opt);
+                }
+                wkKelasSelect.value = val;
+                if(wkKelasChoices){
+                  const data = Array.from(wkKelasSelect.querySelectorAll('option')).map(function(o){
+                    return { value: o.value, label: o.textContent, selected: o.value === val, disabled: o.disabled };
+                  });
+                  wkKelasChoices.clearChoices();
+                  wkKelasChoices.setChoices(data, 'value', 'label', true);
+                }
+              });
+            });
+          }
+        }
+        document.querySelectorAll('form[action*="/walikelas/submit/"]').forEach(function(f){
+          const btnEdit = f.querySelector('button[name="edit"]');
+          if(btnEdit){
+            f.addEventListener('submit', function(e){
+              const tanggal = (f.querySelector('[name="tanggalLahir"]')||{}).value||'';
+              const alamat = (f.querySelector('[name="alamat"]')||{}).value||'';
+              const tel = (f.querySelector('[name="nomorTelepon"]')||{}).value||'';
+              const kelasWalian = (f.querySelector('[name="namaKelasWalian"]')||{}).value||'';
+              if(!validDate(tanggal)){ e.preventDefault(); showError('Tanggal lahir harus format yyyy-MM-dd'); return; }
+              if(!alamat.trim()){ e.preventDefault(); showError('Alamat wajib diisi'); return; }
+              if(tel && !/^0[0-9]{9,13}$/.test(tel)){ e.preventDefault(); showError('Nomor telepon harus diawali 0 dan 10–14 digit'); return; }
+              if(!kelasWalian.trim()){ e.preventDefault(); showError('Nama kelas wajib diisi'); return; }
+            });
+          }
+        });
+        document.querySelectorAll('form button[name="delete"]').forEach(btn=>{
+          btn.addEventListener('click', function(e){
+            e.preventDefault();
+            const form = btn.closest('form');
+            if(form) confirmDelete(form, btn);
+          });
+        });
+        const raportForm = document.querySelector('.js-raport-form');
+        if(raportForm){
+          raportForm.addEventListener('submit', function(e){
+            const siswa = (raportForm.querySelector('[name="siswaId"]')||{}).value||'';
+            if(!siswa){ e.preventDefault(); showError('Pilih siswa'); return; }
+          });
+          const selSiswa = raportForm.querySelector('.js-rap-siswa-select');
+          if(selSiswa){
+            if(window.Choices){
+              const c = new Choices(selSiswa, { searchEnabled:true, shouldSort:false, itemSelectText:'', allowHTML:false });
+              selSiswa._choices = c;
+            }
+            const sumber = Array.from(selSiswa.querySelectorAll('option')).map(function(o){
+              return { value:o.value, label:o.textContent, kelas:(o.getAttribute('data-kelas')||''), mapel:(o.getAttribute('data-mapel')||'') };
+            }).filter(function(d){ return d.value && d.value !== ''; });
+            selSiswa._sumber = sumber;
+            selSiswa._mapelMap = sumber.reduce(function(acc,d){ acc[d.value] = d.mapel; return acc; }, {});
+            selSiswa._initSelected = selSiswa.getAttribute('data-init')||selSiswa.value||'';
+            // Siswa sudah difilter berdasarkan wali kelas yang login, jadi langsung enable
+            selSiswa.removeAttribute('disabled');
+            if(selSiswa._initSelected){
+              selSiswa.value = selSiswa._initSelected;
+              if(selSiswa._choices){ selSiswa._choices.setChoiceByValue(selSiswa._initSelected); }
+              selSiswa._initSelected = '';
+            }
+          }
+        }
+        document.querySelectorAll('.js-cek-nilai').forEach(function(btn){
+          btn.addEventListener('click', function(e){
+            e.preventDefault();
+            const raw = btn.getAttribute('data-nilai')||'';
+            if(!raw.trim()){ SA.fire({icon:'info', title:'Nilai', text:'Belum ada nilai'}); return; }
+            const list = raw.split(',').map(function(s){ return s.trim(); }).filter(function(s){ return s.length>0; });
+            SA.fire({icon:'info', title:'Nilai', html:'<div class="text-left text-sm">'+list.join(', ')+'</div>'});
+          });
+        });
+        document.querySelectorAll('.js-data-table').forEach(function(t){ initDataTable(t); });
+
+        const siswaMapelModal = document.getElementById('mapel-modal');
+        const siswaMapelForm = document.getElementById('mapel-form');
+        const siswaMapelSelect = document.getElementById('mapel-select');
+        const siswaMapelSiswaId = document.getElementById('mapel-siswa-id');
+        function openMapel(){ if(siswaMapelModal){ siswaMapelModal.classList.remove('hidden'); siswaMapelModal.classList.add('flex'); } }
+        function closeMapel(){ if(siswaMapelModal){ siswaMapelModal.classList.add('hidden'); siswaMapelModal.classList.remove('flex'); } }
+        document.querySelectorAll('.js-open-mapel-modal').forEach(function(btn){
+          btn.addEventListener('click', function(){
+            const sid = btn.getAttribute('data-siswa-id')||'';
+            const selected = (btn.getAttribute('data-selected')||'').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+            siswaMapelSiswaId && (siswaMapelSiswaId.value = sid);
+            if(siswaMapelSelect){
+              Array.from(siswaMapelSelect.options).forEach(function(opt){ opt.selected = selected.includes(String(opt.value)); });
+              if(window.Choices && !siswaMapelSelect._choices){
+                const inst = new Choices(siswaMapelSelect, { removeItemButton:true, searchEnabled:true, shouldSort:false, itemSelectText:'', allowHTML:false });
+                siswaMapelSelect._choices = inst;
+              } else if(siswaMapelSelect._choices){
+                siswaMapelSelect._choices.setChoiceByValue(selected);
+              }
+            }
+            openMapel();
+          });
+        });
+        document.querySelectorAll('.js-close-mapel-modal').forEach(function(btn){ btn.addEventListener('click', closeMapel); });
+        if(siswaMapelForm){
+          siswaMapelForm.addEventListener('submit', function(e){
+            const sid = siswaMapelSiswaId ? siswaMapelSiswaId.value : '';
+            if(!sid){ e.preventDefault(); showError('Siswa tidak ditemukan'); return; }
+            const action = '/siswa/mapel/'+sid;
+            siswaMapelForm.setAttribute('action', action);
+            const values = Array.from(siswaMapelSelect.selectedOptions||[]).map(function(o){ return o.value; });
+            if(values.length === 0){ e.preventDefault(); showError('Pilih minimal satu mata pelajaran'); return; }
+          });
+        }
+
+        // Raport nilai per mapel berdasar siswa terpilih
+        const rapNilaiModal = document.getElementById('raport-nilai-modal');
+        const rapNilaiForm = document.getElementById('raport-nilai-form');
+        const rapNilaiFields = document.getElementById('raport-nilai-fields');
+        const rapSiswaSelect = document.querySelector('.js-rap-siswa-select');
+        function openRapNilai(){ if(rapNilaiModal){ rapNilaiModal.classList.remove('hidden'); rapNilaiModal.classList.add('flex'); } }
+        function closeRapNilai(){ if(rapNilaiModal){ rapNilaiModal.classList.add('hidden'); rapNilaiModal.classList.remove('flex'); } }
+        document.querySelectorAll('.js-open-raport-nilai').forEach(function(btn){
+          btn.addEventListener('click', function(){
+            if(!rapSiswaSelect){ showError('Pilih siswa terlebih dahulu'); return; }
+            const sid = rapSiswaSelect.value;
+            if(!sid){ showError('Pilih siswa terlebih dahulu'); return; }
+            const opt = rapSiswaSelect.querySelector('option[value="'+sid+'"]');
+            const mapelStr = rapSiswaSelect._mapelMap ? (rapSiswaSelect._mapelMap[sid]||'') : (opt ? (opt.getAttribute('data-mapel')||'') : '');
+            const mapelIds = mapelStr.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+            rapNilaiFields && (rapNilaiFields.innerHTML = '');
+            const refOptions = document.querySelectorAll('option[th\\:each="m : ${mapelList}"]');
+            const altOptions = document.querySelectorAll('#mapel-select option');
+            const raportForm = document.querySelector('.js-raport-form');
+            const exMapel = Array.from(raportForm ? raportForm.querySelectorAll('input[data-gen="rap-nilai"][name="mapelIds"]') : []);
+            const exNilai = Array.from(raportForm ? raportForm.querySelectorAll('input[data-gen="rap-nilai"][name="nilai"]') : []);
+            const exPairs = {};
+            for(let i=0;i<Math.min(exMapel.length, exNilai.length); i++){ exPairs[String(exMapel[i].value)] = exNilai[i].value; }
+            mapelIds.forEach(function(mid){
+              let nama = 'Mapel';
+              (refOptions.length ? refOptions : altOptions).forEach(function(opt){ if(String(opt.value) === String(mid)) { nama = opt.textContent; } });
+              const row = document.createElement('div');
+              row.className = 'grid grid-cols-[1fr_auto] items-center gap-2';
+              const existingVal = exPairs[String(mid)] || '';
+              row.innerHTML = '<input type="hidden" name="mapelIds" value="'+mid+'">\n' +
+                '<label class="text-sm text-gray-700">'+nama+'</label>' +
+                '<input name="nilai" type="number" min="0" max="100" step="1" placeholder="Nilai" class="w-32 rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]" value="'+existingVal+'">';
+              rapNilaiFields.appendChild(row);
+            });
+            openRapNilai();
+          });
+        });
+        document.querySelectorAll('.js-close-raport-nilai').forEach(function(btn){ btn.addEventListener('click', closeRapNilai); });
+        if(rapNilaiForm){
+          rapNilaiForm.addEventListener('submit', function(e){
+            e.preventDefault();
+            const sid = rapSiswaSelect ? rapSiswaSelect.value : '';
+            if(!sid){ showError('Pilih siswa terlebih dahulu'); return; }
+            const nilaiInputs = Array.from(rapNilaiForm.querySelectorAll('input[name="nilai"]'));
+            const mapelInputs = Array.from(rapNilaiForm.querySelectorAll('input[name="mapelIds"]'));
+            const pairs = [];
+            for(let i=0;i<Math.min(nilaiInputs.length, mapelInputs.length);i++){
+              const v = nilaiInputs[i].value;
+              const mid = mapelInputs[i].value;
+              if(v !== '' && mid !== '') pairs.push({ mid: mid, val: v });
+            }
+            if(pairs.length === 0){ showError('Isi minimal satu nilai'); return; }
+            const raportForm = document.querySelector('.js-raport-form');
+            if(!raportForm){ showError('Form raport tidak ditemukan'); return; }
+            Array.from(raportForm.querySelectorAll('input[data-gen="rap-nilai"]')).forEach(function(el){ el.remove(); });
+            pairs.forEach(function(p){
+              const hid1 = document.createElement('input');
+              hid1.type = 'hidden'; hid1.name = 'mapelIds'; hid1.value = String(p.mid); hid1.setAttribute('data-gen','rap-nilai');
+              const hid2 = document.createElement('input');
+              hid2.type = 'hidden'; hid2.name = 'nilai'; hid2.value = String(p.val); hid2.setAttribute('data-gen','rap-nilai');
+              raportForm.appendChild(hid1); raportForm.appendChild(hid2);
+            });
+            closeRapNilai();
+            if(SA && SA.fire){ SA.fire({icon:'success', title:'Nilai Raport', text:'Nilai berhasil dimasukkan. Klik tombol Buat/Save untuk mengirim.'}); }
+          });
+        }
+      }
+      if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', attach); } else { attach(); }
+    })();
+  </script>
+</div>
